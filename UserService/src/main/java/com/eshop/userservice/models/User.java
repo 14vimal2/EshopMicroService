@@ -1,5 +1,6 @@
 package com.eshop.userservice.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,8 +25,10 @@ public class User extends BaseModel {
     private String firstName;
     private String lastName;
     private Date birthday;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id") // this adds column in address table
+    @JsonManagedReference
     private List<Address> addresses;
 
     @OneToOne

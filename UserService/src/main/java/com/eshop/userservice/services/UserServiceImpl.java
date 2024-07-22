@@ -138,6 +138,11 @@ public class UserServiceImpl implements UserService {
             if(user.getBirthday() != null) {
                 userToUpdate.setBirthday(user.getBirthday());
             }
+
+            if(user.getPrimaryAddress() != null) {
+                userToUpdate.setPrimaryAddress(user.getPrimaryAddress());
+            }
+
             return userRepository.save(userToUpdate);
         }
         throw new UserNotFoundException("User not found with id: " + user.getId());
