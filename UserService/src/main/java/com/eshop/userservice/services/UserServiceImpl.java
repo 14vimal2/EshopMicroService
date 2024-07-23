@@ -4,12 +4,21 @@ import com.eshop.userservice.exceptions.AddressNotFoundException;
 import com.eshop.userservice.exceptions.UserAlreadyExistsException;
 import com.eshop.userservice.exceptions.UserNotFoundException;
 import com.eshop.userservice.models.Address;
+import com.eshop.userservice.models.Token;
 import com.eshop.userservice.models.User;
 import com.eshop.userservice.repositories.AddressRepository;
+import com.eshop.userservice.repositories.TokenRepository;
 import com.eshop.userservice.repositories.UserRepository;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,11 +26,20 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final TokenRepository tokenRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, AddressRepository addressRepository) {
+    public UserServiceImpl(
+            UserRepository userRepository,
+            AddressRepository addressRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            TokenRepository tokenRepository
+    ) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -38,8 +56,55 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setHashedPassword(bCryptPasswordEncoder.encode(password));
         return userRepository.save(user);
+    }
+
+    @Override
+    public Token login(String username, String password) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if(userOptional.isEmpty()) {
+            throw new UserNotFoundException(username);
+        }
+        User user = userOptional.get();
+        String hashedPassword = user.getHashedPassword();
+
+        if (!bCryptPasswordEncoder.matches(password, hashedPassword)) {
+            throw new BadCredentialsException("Bad credentials");
+        }
+
+        Token token = new Token();
+
+
+        token.setUser(user);
+        // Get today's date
+        LocalDate today = LocalDate.now();
+
+        // Add 30 days to today's date
+        LocalDate dateAfter30Days = today.plusDays(30);
+
+        // Convert LocalDate to Date
+        Date expiryDate = Date.from(dateAfter30Days.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        token.setExpiryDate(expiryDate);
+
+        token.setValue(RandomStringUtils.randomAlphanumeric(128));
+
+        return tokenRepository.save(token);
+
+    }
+
+    @Override
+    public void logout(String token) {
+        Optional<Token> tokenOptional = tokenRepository.findByValue(token);
+
+        if (tokenOptional.isPresent()) {
+            Token savedToken = tokenOptional.get();
+            savedToken.setDeleted(true);
+            tokenRepository.save(savedToken);
+        } else {
+            throw new RuntimeException("Token not found");
+        }
     }
 
     @Override
@@ -49,6 +114,7 @@ public class UserServiceImpl implements UserService {
             return userOptional.get();
         }
         throw new UserNotFoundException("User not found with email: " + email);
+
     }
 
     @Override
@@ -69,23 +135,6 @@ public class UserServiceImpl implements UserService {
         throw new UserNotFoundException("User not found with id: " + id);
     }
 
-    @Override
-    public User findByUsernameAndPassword(String username, String password) throws UserNotFoundException {
-        Optional<User> userOptional = userRepository.findByUsernameAndPassword(username, password);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        }
-        throw new UserNotFoundException("Invalid username or password");
-    }
-
-    @Override
-    public User findByEmailAndPassword(String email, String password) throws UserNotFoundException {
-        Optional<User> userOptional = userRepository.findByEmailAndPassword(email, password);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        }
-        throw new UserNotFoundException("Invalid email or password");
-    }
 
     @Override
     public User findByPhone(String phone) throws UserNotFoundException {
@@ -96,14 +145,6 @@ public class UserServiceImpl implements UserService {
         throw new UserNotFoundException("User not found with phone: " + phone);
     }
 
-    @Override
-    public User findByPhoneAndPassword(String phone, String password) {
-        Optional<User> userOptional = userRepository.findByPhoneAndPassword(phone, password);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        }
-        throw new UserNotFoundException("Invalid phone or password");
-    }
 
     @Override
     public User updateUser(User user) throws UserNotFoundException {
@@ -115,8 +156,8 @@ public class UserServiceImpl implements UserService {
                 userToUpdate.setUsername(user.getUsername());
             }
 
-            if(user.getPassword() != null){
-                userToUpdate.setPassword(user.getPassword());
+            if(user.getHashedPassword() != null){
+                userToUpdate.setHashedPassword(user.getHashedPassword());
             }
 
             if(user.getEmail() != null){

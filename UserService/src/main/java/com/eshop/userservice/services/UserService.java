@@ -4,6 +4,7 @@ import com.eshop.userservice.exceptions.AddressNotFoundException;
 import com.eshop.userservice.exceptions.UserAlreadyExistsException;
 import com.eshop.userservice.exceptions.UserNotFoundException;
 import com.eshop.userservice.models.Address;
+import com.eshop.userservice.models.Token;
 import com.eshop.userservice.models.User;
 
 import java.util.List;
@@ -22,10 +23,7 @@ public interface UserService {
     User findByEmail(String email) throws UserNotFoundException;
     User findByUsername(String username);
     User findById(Long id);
-    User findByUsernameAndPassword(String username, String password);
-    User findByEmailAndPassword(String email, String password);
     User findByPhone(String phone);
-    User findByPhoneAndPassword(String phone, String password);
     User updateUser(User user);
     void deleteUser(Long id);
 
@@ -33,4 +31,6 @@ public interface UserService {
     Address updateUserAddress(User user, Address address);
     Address updateUserPrimaryAddress(User user, Long addressId) throws AddressNotFoundException;
 
+    Token login(String username, String password);
+    void logout(String token);
 }
