@@ -47,7 +47,7 @@ class ProductControllerTest {
                 productService.findAll()
         ).thenReturn(products);
 
-        ResponseEntity<List<Product>> response = productController.getAllProducts();
+        ResponseEntity<List<Product>> response = productController.getAllProducts("test_token");
 
 //        assertNotNull(response);
 

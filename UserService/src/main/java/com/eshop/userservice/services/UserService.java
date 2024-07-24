@@ -1,5 +1,6 @@
 package com.eshop.userservice.services;
 
+import com.eshop.userservice.dtos.UserDto;
 import com.eshop.userservice.exceptions.AddressNotFoundException;
 import com.eshop.userservice.exceptions.UserAlreadyExistsException;
 import com.eshop.userservice.exceptions.UserNotFoundException;
@@ -33,4 +34,5 @@ public interface UserService {
 
     Token login(String username, String password);
     void logout(String token);
+    UserDto validateToken(String token);
 }

@@ -3,9 +3,10 @@ package com.eshop.userservice.configs;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -16,15 +17,20 @@ public class SecurityConfigurations {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // allow all request to pass without any authentication
 
-        http.authorizeHttpRequests(
-                requests -> requests
-                        .requestMatchers("/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/**") .permitAll()
-                        .anyRequest()
-                        .authenticated()
+        http
+                .cors(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                    requests -> requests
+                            .requestMatchers(HttpMethod.GET, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users/login") .permitAll()
+                            .requestMatchers(HttpMethod.POST,"/users/signup").permitAll()
+                            .requestMatchers(HttpMethod.POST, "users/validate/{token}").permitAll()
+                            .anyRequest()
+                            .authenticated()
 
-        );
-        http.httpBasic(Customizer.withDefaults());
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
 }

@@ -3,6 +3,7 @@ package com.eshop.productservice.controllers;
 import com.eshop.productservice.exceptions.ProductNotFoundException;
 import com.eshop.productservice.models.Category;
 import com.eshop.productservice.models.Product;
+import com.eshop.productservice.services.AuthService;
 import com.eshop.productservice.services.CategoryService;
 import com.eshop.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +21,28 @@ public class ProductController {
 
     private final CategoryService categoryService;
 
+    private final AuthService authService;
+
+
+
 
     @Autowired
-    public ProductController(ProductService productService, CategoryService categoryService) {
+    public ProductController(
+            ProductService productService,
+            CategoryService categoryService,
+            AuthService authService
+    ) {
         this.productService = productService;
         this.categoryService = categoryService;
+        this.authService = authService;
     }
 
     @GetMapping()
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<Product>> getAllProducts(@RequestHeader("AUTH_TOKEN") String token) {
+
+        if(authService.validateToken(token) == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         return ResponseEntity.ok(productService.findAll());
     }
 

@@ -1,6 +1,5 @@
 package com.eshop.userservice.dtos;
 
-import com.eshop.userservice.models.Token;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,4 +8,9 @@ import lombok.Setter;
 public class LoginRequestDto {
     private String username;
     private String password;
+
+    @Override
+    public String toString() {
+        return username + ":" + password;
+    }
 }

@@ -1,5 +1,6 @@
 package com.eshop.userservice.services;
 
+import com.eshop.userservice.dtos.UserDto;
 import com.eshop.userservice.exceptions.AddressNotFoundException;
 import com.eshop.userservice.exceptions.UserAlreadyExistsException;
 import com.eshop.userservice.exceptions.UserNotFoundException;
@@ -105,6 +106,16 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new RuntimeException("Token not found");
         }
+    }
+
+    @Override
+    public UserDto validateToken(String token) {
+        Optional<Token> tokenOptional = tokenRepository.findByValue(token);
+
+        if(tokenOptional.isPresent() && tokenOptional.get().getExpiryDate().after(new Date())) {
+            return UserDto.of(tokenOptional.get().getUser());
+        }
+        return null;
     }
 
     @Override
