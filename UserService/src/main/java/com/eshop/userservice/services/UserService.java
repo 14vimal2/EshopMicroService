@@ -20,7 +20,7 @@ public interface UserService {
 
     List<User> findAll();
 
-    User createUser(String username, String password) throws UserAlreadyExistsException;
+    User createUser(String username, String password, String email) throws UserAlreadyExistsException;
     User findByEmail(String email) throws UserNotFoundException;
     User findByUsername(String username);
     User findById(Long id);

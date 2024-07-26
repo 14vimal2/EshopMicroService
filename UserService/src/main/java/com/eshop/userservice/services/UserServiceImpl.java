@@ -1,5 +1,6 @@
 package com.eshop.userservice.services;
 
+import com.eshop.userservice.dtos.SendEmailEventDto;
 import com.eshop.userservice.dtos.UserDto;
 import com.eshop.userservice.exceptions.AddressNotFoundException;
 import com.eshop.userservice.exceptions.UserAlreadyExistsException;
@@ -10,9 +11,12 @@ import com.eshop.userservice.models.User;
 import com.eshop.userservice.repositories.AddressRepository;
 import com.eshop.userservice.repositories.TokenRepository;
 import com.eshop.userservice.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,17 +34,24 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final TokenRepository tokenRepository;
 
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private ObjectMapper objectMapper;
+
     @Autowired
     public UserServiceImpl(
             UserRepository userRepository,
             AddressRepository addressRepository,
             BCryptPasswordEncoder bCryptPasswordEncoder,
-            TokenRepository tokenRepository
+            TokenRepository tokenRepository,
+            KafkaTemplate<String, String> kafkaTemplate,
+            ObjectMapper objectMapper
     ) {
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -49,7 +60,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(String username, String password) throws UserAlreadyExistsException {
+    public User createUser(String username, String password, String email) throws UserAlreadyExistsException {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isPresent()) {
             throw new UserAlreadyExistsException(username);
@@ -58,7 +69,29 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setHashedPassword(bCryptPasswordEncoder.encode(password));
-        return userRepository.save(user);
+        user.setEmail(email);
+        user = userRepository.save(user);
+
+        SendEmailEventDto sendEmailEventDto = new SendEmailEventDto();
+
+        sendEmailEventDto.setTo(user.getEmail());
+        sendEmailEventDto.setSubject("New user");
+        sendEmailEventDto.setBody("New user");
+        sendEmailEventDto.setFrom("info@eshop.com");
+
+
+
+
+        try {
+            kafkaTemplate.send(
+                    "sendEmail",
+                    objectMapper.writeValueAsString(sendEmailEventDto)
+            );
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return user;
     }
 
     @Override

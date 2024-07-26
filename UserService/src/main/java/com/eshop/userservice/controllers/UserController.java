@@ -48,7 +48,8 @@ public class UserController {
         }
         String username = signUpDto.getUsername();
         String password = signUpDto.getPassword();
-        return new ResponseEntity<>(userService.createUser(username, password), HttpStatus.CREATED);
+        String email = signUpDto.getEmail();
+        return new ResponseEntity<>(userService.createUser(username, password, email), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")

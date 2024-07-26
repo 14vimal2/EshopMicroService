@@ -101,13 +101,14 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
-                            .requestMatchers("/actuator/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/users").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/users/login") .permitAll()
-                            .requestMatchers(HttpMethod.POST,"/users/signup").permitAll()
-                            .requestMatchers(HttpMethod.POST, "users/validate/{token}").permitAll()
-                            .anyRequest()
-                            .authenticated()
+                                .anyRequest().permitAll()
+//                            .requestMatchers("/actuator/**").permitAll()
+//                            .requestMatchers(HttpMethod.GET, "/users").permitAll()
+//                            .requestMatchers(HttpMethod.POST, "/users/login") .permitAll()
+//                            .requestMatchers(HttpMethod.POST,"/users/signup").permitAll()
+//                            .requestMatchers(HttpMethod.POST, "users/validate/{token}").permitAll()
+//                            .anyRequest()
+//                            .authenticated()
                 )
                 // Form login handles the redirect to the login page from the
                 // authorization server filter chain
