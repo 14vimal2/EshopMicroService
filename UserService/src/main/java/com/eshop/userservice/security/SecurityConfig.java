@@ -101,6 +101,7 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
+                            .requestMatchers("/actuator/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users").permitAll()
                             .requestMatchers(HttpMethod.POST, "/users/login") .permitAll()
                             .requestMatchers(HttpMethod.POST,"/users/signup").permitAll()

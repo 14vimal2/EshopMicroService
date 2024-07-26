@@ -16,12 +16,6 @@ import java.util.UUID;
 @SpringBootTest
 class UserServiceApplicationTests {
 
-	@Autowired
-	private JpaRegisteredClientRepository jpaRegisteredClientRepository;
-
-	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
-
 
 	@Test
 	void contextLoads() {
@@ -29,27 +23,26 @@ class UserServiceApplicationTests {
 
 	@Test
 	void storeRegisteredClientIntoDB() {
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oidc-client")
-				.clientSecret(bCryptPasswordEncoder.encode("secret"))
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("https://oauth.pstmn.io/v1/callback")
-                .postLogoutRedirectUri("https://oauth.pstmn.io/v1/callback")
-                .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
-                .postLogoutRedirectUri("https://oauth.pstmn.io/v1/browser-callback")
-                .redirectUri("https://oauthdebugger.com/debug")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("ADMIN")
-                .scope("USER")
-                .scope("SELLER")
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-                .build();
-
-		jpaRegisteredClientRepository.save(oidcClient);
-
+//        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+//                .clientId("oidc-client")
+//				.clientSecret(bCryptPasswordEncoder.encode("secret"))
+//                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//                .redirectUri("https://oauth.pstmn.io/v1/callback")
+//                .postLogoutRedirectUri("https://oauth.pstmn.io/v1/callback")
+//                .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
+//                .postLogoutRedirectUri("https://oauth.pstmn.io/v1/browser-callback")
+//                .redirectUri("https://oauthdebugger.com/debug")
+//                .scope(OidcScopes.OPENID)
+//                .scope(OidcScopes.PROFILE)
+//                .scope("ADMIN")
+//                .scope("USER")
+//                .scope("SELLER")
+//                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+//                .build();
+//
+//		jpaRegisteredClientRepository.save(oidcClient);
 	}
 
 }
