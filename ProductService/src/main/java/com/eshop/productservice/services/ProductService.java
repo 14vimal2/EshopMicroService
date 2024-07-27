@@ -3,6 +3,7 @@ package com.eshop.productservice.services;
 
 import com.eshop.productservice.exceptions.ProductNotFoundException;
 import com.eshop.productservice.models.Product;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface ProductService {
     * */
 
 
-    List<Product> findAll();
+    Page<Product> findAll(int pageNumber, int pageSize);
 
     Product findById(Long id) throws ProductNotFoundException;
 
@@ -28,9 +29,9 @@ public interface ProductService {
 
     void deleteById(Long id);
 
-    List<Product> findAllByCategoryId(Long categoryId);
+    Page<Product> findAllByCategoryId(Long categoryId, int pageNumber, int pageSize);
 
-    List<Product> findAllByCategoryName(String categoryName);
+    Page<Product> findAllByCategoryName(String categoryName, int pageNumber, int pageSize);
 
 
 

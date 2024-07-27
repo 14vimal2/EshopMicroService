@@ -2,38 +2,47 @@ package com.eshop.productservice.services;
 
 import com.eshop.productservice.exceptions.ProductNotFoundException;
 import com.eshop.productservice.models.Product;
-import com.eshop.productservice.repositories.ProductRepository;
+import com.eshop.productservice.repositories.ProductElasticRepository;
+import com.eshop.productservice.repositories.ProductJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
+    private final ProductJpaRepository productJpaRepository;
+    private final ProductElasticRepository productElasticRepository;
 
     private final CategoryService categoryService;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, CategoryService categoryService) {
-        this.productRepository = productRepository;
+    public ProductServiceImpl(
+            ProductJpaRepository productJpaRepository,
+            ProductElasticRepository productElasticRepository,
+            CategoryService categoryService) {
+        this.productJpaRepository = productJpaRepository;
+        this.productElasticRepository = productElasticRepository;
         this.categoryService = categoryService;
     }
 
     @Override
-    public List<Product> findAll() {
-        return productRepository.findAll();
+    public Page<Product> findAll(int pageNumber, int pageSize) {
+//        return productRepository.findAll(PageRequest.of(pageNumber, pageSize));
+        return productElasticRepository.findAll(PageRequest.of(pageNumber, pageSize));
     }
 
     @Override
     public Product findById(Long id) throws ProductNotFoundException {
 
-        Optional<Product> product = productRepository.findById(id);
+//        Optional<Product> product = productRepository.findById(id);
+        Optional<Product> productOptional = productElasticRepository.findById(id);
 
-        if (product.isPresent()) {
-            return product.get();
+        if (productOptional.isPresent()) {
+            return productOptional.get();
         }
 
         throw new ProductNotFoundException(id);
@@ -45,26 +54,34 @@ public class ProductServiceImpl implements ProductService {
         if(product.getCategory().getId() == null) {
             product.setCategory( categoryService.createCategoryByNameIfNotExist( product.getCategory().getName() ) );
         }
-        return productRepository.save(product);
+        Product savedProduct = productJpaRepository.save(product);
+
+        productElasticRepository.save(savedProduct);
+        return savedProduct;
     }
 
     @Override
     public Product update(Product product) {
-        return productRepository.save(product);
+        product = productJpaRepository.save(product);
+        productElasticRepository.save(product);
+        return product;
     }
 
     @Override
-    public void deleteById(Long id) {
-        productRepository.deleteById(id);
+    public void deleteById(Long id)
+    {
+//        productRepository.deleteById(id);
+        productJpaRepository.deleteById(id);
+        productElasticRepository.deleteById(id);
     }
 
     @Override
-    public List<Product> findAllByCategoryId(Long categoryId) {
-        return productRepository.findProductsByCategory_Id(categoryId);
+    public Page<Product> findAllByCategoryId(Long categoryId, int pageNumber, int pageSize) {
+        return productElasticRepository.findProductsByCategory_Id(categoryId, PageRequest.of(pageNumber, pageSize));
     }
 
     @Override
-    public List<Product> findAllByCategoryName(String categoryName) {
-        return productRepository.findProductsByCategory_Name(categoryName);
+    public Page<Product> findAllByCategoryName(String categoryName, int pageNumber, int pageSize) {
+        return productElasticRepository.findProductsByCategory_Name(categoryName, PageRequest.of(pageNumber, pageSize));
     }
 }

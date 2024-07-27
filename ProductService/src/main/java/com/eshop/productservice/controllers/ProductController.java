@@ -7,6 +7,7 @@ import com.eshop.productservice.services.AuthService;
 import com.eshop.productservice.services.CategoryService;
 import com.eshop.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,8 +44,11 @@ public class ProductController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.findAll());
+    public ResponseEntity<Page<Product>> getAllProducts(
+            @RequestParam("pageNumber") int pageNumber,
+            @RequestParam("pageSize") int pageSize
+    ) {
+        return ResponseEntity.ok(productService.findAll(pageNumber, pageSize));
     }
 
     @GetMapping("/{id}")
@@ -74,9 +78,12 @@ public class ProductController {
         return new ResponseEntity<>(categoryService.findAll(), HttpStatus.OK);
     }
 
-    @GetMapping("/categories/{name}")
-    public ResponseEntity<List<Product>> getAllCategoriesByName(@PathVariable("name") String name) {
-        return new ResponseEntity<>(productService.findAllByCategoryName(name), HttpStatus.OK);
+    @GetMapping("/categories/{name}/{pageNumber}/{pageSize}")
+    public ResponseEntity<Page<Product>> getAllCategoriesByName(
+            @PathVariable("name") String name,
+            @PathVariable("pageNumber") int pageNumber,
+            @PathVariable("pageSize") int pageSize) {
+        return new ResponseEntity<>(productService.findAllByCategoryName(name, pageNumber, pageSize), HttpStatus.OK);
     }
 
 }
