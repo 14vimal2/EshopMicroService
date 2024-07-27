@@ -79,9 +79,6 @@ public class UserServiceImpl implements UserService {
         sendEmailEventDto.setBody("New user");
         sendEmailEventDto.setFrom("info@eshop.com");
 
-
-
-
         try {
             kafkaTemplate.send(
                     "sendEmail",

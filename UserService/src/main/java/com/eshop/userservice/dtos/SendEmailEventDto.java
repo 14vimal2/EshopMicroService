@@ -1,11 +1,15 @@
 package com.eshop.userservice.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
+
+@Data
 @Getter
 @Setter
-public class SendEmailEventDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class SendEmailEventDto implements Serializable {
     private String to;
     private String from;
     private String subject;
